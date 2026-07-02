@@ -57,19 +57,20 @@ test-verbose:
     cargo test -- --nocapture
 
 # ── Deps (dogfood lockstep on itself) ───────────────────────────────────────
-# `--freeze actions` keeps the CI workflow's action pins as immutable SHAs
-# (CI is SHA-frozen; lockstep's own freeze is opt-in, so we opt in here).
+# `--freeze all` keeps every freezable pin immutable — GitHub Actions `uses:` and
+# pre-commit hook revs as SHAs (+ Docker digests if a Dockerfile is ever added).
+# lockstep's freeze is opt-in, so we opt in here to match the repo's frozen pins.
 [group('deps')]
 deps:
-    cargo run -- run --freeze actions
+    cargo run -- run --freeze all
 
 [group('deps')]
 deps-check:
-    cargo run -- check --freeze actions
+    cargo run -- check --freeze all
 
 [group('deps')]
 deps-major:
-    cargo run -- run --major --freeze actions
+    cargo run -- run --major --freeze all
 
 # ── Release (CalVer YYYY.MM.MICRO) ─────────────────────────────────────────
 # Compute the next release tag: today's year.month, MICRO = next unused count
