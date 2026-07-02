@@ -18,7 +18,7 @@ fn main() {
     let code = match run(cli) {
         Ok(code) => code,
         Err(e) => {
-            eprintln!("❌ lockstep: {e}");
+            eprintln!("❌ clockpin: {e}");
             1
         }
     };
@@ -32,7 +32,7 @@ fn run(cli: Cli) -> anyhow::Result<i32> {
         Command::List(p) => list(p.path.as_deref()),
         Command::Completions { shell } => {
             let mut cmd = Cli::command();
-            clap_complete::generate(shell, &mut cmd, "lockstep", &mut std::io::stdout());
+            clap_complete::generate(shell, &mut cmd, "clockpin", &mut std::io::stdout());
             Ok(0)
         }
     }
@@ -111,7 +111,7 @@ fn orchestrate(args: RunArgs, force_dry_run: bool) -> anyhow::Result<i32> {
 
     if let Some(path) = log_json {
         let log = RunLog {
-            tool: "lockstep".into(),
+            tool: "clockpin".into(),
             version: env!("CARGO_PKG_VERSION").into(),
             repo_root: ctx.repo_root.to_string_lossy().into_owned(),
             options: OptionsLog {

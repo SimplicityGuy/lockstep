@@ -1,4 +1,4 @@
-//! HTTPS clients for the package registries lockstep queries. Base URLs are
+//! HTTPS clients for the package registries clockpin queries. Base URLs are
 //! fields so tests can point them at a mock server. All reads are size-capped
 //! and time-bounded; any failure yields `None` rather than propagating.
 

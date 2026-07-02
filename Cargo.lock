@@ -211,6 +211,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
+name = "clockpin"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "clap_complete",
+ "console",
+ "indicatif",
+ "mockito",
+ "predicates",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "toml",
+ "toml_edit",
+ "ureq",
+ "which",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -701,29 +724,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
 dependencies = [
  "scopeguard",
-]
-
-[[package]]
-name = "lockstep"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "clap_complete",
- "console",
- "indicatif",
- "mockito",
- "predicates",
- "regex",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "toml",
- "toml_edit",
- "ureq",
- "which",
 ]
 
 [[package]]

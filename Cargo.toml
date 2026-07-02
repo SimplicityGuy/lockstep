@@ -1,14 +1,14 @@
 [package]
-name = "lockstep"
+name = "clockpin"
 version = "0.1.0"
 edition = "2024"
 authors = ["Robert Wlodarczyk <robert@simplicityguy.com>"]
 description = "Keep every pinned dependency in a repo in step with upstream."
 license = "MIT"
-repository = "https://github.com/SimplicityGuy/lockstep"
+repository = "https://github.com/SimplicityGuy/clockpin"
 
 [[bin]]
-name = "lockstep"
+name = "clockpin"
 path = "src/main.rs"
 
 [lints.rust]

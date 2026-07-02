@@ -9,7 +9,7 @@ use crate::context::{Ecosystem, RunCtx, SystemRunner};
 
 #[derive(Parser)]
 #[command(
-    name = "lockstep",
+    name = "clockpin",
     version,
     about = "Keep every pinned dependency in a repo in step with upstream."
 )]

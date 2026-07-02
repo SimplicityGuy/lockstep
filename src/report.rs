@@ -73,7 +73,10 @@ pub struct Reporter {
 impl Reporter {
     pub fn header(&self) {
         if !self.quiet {
-            println!("\n  🔒 {} · keeping 'em in step\n", self.emph("lockstep"));
+            println!(
+                "\n  🔒 {} · continuous lockfile pin updates\n",
+                self.emph("clockpin")
+            );
         }
     }
 
@@ -232,7 +235,7 @@ mod tests {
     #[test]
     fn run_log_shape_is_stable() {
         let log = RunLog {
-            tool: "lockstep".into(),
+            tool: "clockpin".into(),
             version: "0.1.0".into(),
             repo_root: "/x".into(),
             options: OptionsLog {
@@ -251,7 +254,7 @@ mod tests {
             },
         };
         let j = serde_json::to_value(&log).unwrap();
-        assert_eq!(j["tool"], "lockstep");
+        assert_eq!(j["tool"], "clockpin");
         assert_eq!(j["options"]["freeze"][0], "actions");
     }
 }

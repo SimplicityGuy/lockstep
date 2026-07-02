@@ -43,7 +43,7 @@ jobs:
             exit 1
           fi
           echo "VERSION=${version}" >> "$GITHUB_ENV"
-          # Inject the CalVer into the crate so `lockstep --version` reports it.
+          # Inject the CalVer into the crate so `clockpin --version` reports it.
           # Only the [package] version sits at column 0, so a line-anchored edit is safe.
           perl -i -pe 's/^version = ".*"/version = "'"$version"'"/' Cargo.toml
           grep '^version' Cargo.toml
@@ -61,12 +61,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          stage="lockstep-${VERSION}-${TARGET}"
+          stage="clockpin-${VERSION}-${TARGET}"
           mkdir "$stage"
           if [ "$IS_WINDOWS" = "true" ]; then
-            cp "target/${TARGET}/release/lockstep.exe" "$stage/"
+            cp "target/${TARGET}/release/clockpin.exe" "$stage/"
           else
-            cp "target/${TARGET}/release/lockstep" "$stage/"
+            cp "target/${TARGET}/release/clockpin" "$stage/"
           fi
           cp README.md LICENSE "$stage/"
           if [ "$IS_WINDOWS" = "true" ]; then
@@ -86,7 +86,7 @@ jobs:
       - name: ⬆️ Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # frozen: v7
         with:
-          name: lockstep-${{ matrix.target }}
+          name: clockpin-${{ matrix.target }}
           path: |
             ${{ steps.package.outputs.archive }}
             ${{ steps.package.outputs.archive }}.sha256
@@ -124,6 +124,6 @@ jobs:
           cd dist
           gh release create "v${VERSION}" \
             --repo "$REPO" \
-            --title "lockstep ${VERSION}" \
+            --title "clockpin ${VERSION}" \
             --generate-notes \
-            lockstep-*.tar.gz lockstep-*.zip SHA256SUMS
+            clockpin-*.tar.gz clockpin-*.zip SHA256SUMS
