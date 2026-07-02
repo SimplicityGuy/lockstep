@@ -116,6 +116,7 @@ impl Reporter {
                 .cloned()
                 .collect::<Vec<_>>()
                 .join("; "),
+            Status::WouldChange if out.changes.is_empty() => "would update (run to apply)".into(),
             _ if out.changes.is_empty() => "up to date".into(),
             _ => out
                 .changes

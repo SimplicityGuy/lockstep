@@ -63,6 +63,11 @@ pub fn rewrite_uses(
             });
             format!("{}{action}@{sha}  # frozen: {new_ver}", &c["prefix"])
         } else {
+            // Non-frozen mode manages bare tag pins only. Never silently un-freeze an
+            // existing SHA pin into a floating tag — that would drop a supply-chain pin.
+            if is_sha {
+                return c[0].to_string();
+            }
             let new_ref = desired_tag(cur_ref, &latest);
             if new_ref == cur_ref {
                 return c[0].to_string();
@@ -73,7 +78,8 @@ pub fn rewrite_uses(
                 to: new_ref.clone(),
                 kind: ChangeKind::Pin,
             });
-            format!("{}{action}@{new_ref}", &c["prefix"])
+            let comment = c.name("comment").map(|m| m.as_str()).unwrap_or("");
+            format!("{}{action}@{new_ref}{comment}", &c["prefix"])
         }
     });
     (new.into_owned(), changes)
@@ -225,6 +231,24 @@ mod tests {
             format!("      - uses: actions/checkout@{sha}  # frozen: v7\n")
         );
         assert!(!new.contains("v7.0.0"));
+    }
+
+    #[test]
+    fn non_frozen_leaves_sha_frozen_pin_untouched() {
+        let sha = "a".repeat(40);
+        let text = format!("      - uses: actions/checkout@{sha}  # frozen: v6\n");
+        let (new, changes) = rewrite_uses(&text, false, resolve);
+        // Non-frozen mode must never un-freeze an existing SHA pin into a
+        // floating tag — that would silently drop a supply-chain pin.
+        assert_eq!(new, text);
+        assert!(changes.is_empty());
+    }
+
+    #[test]
+    fn non_frozen_tag_pin_preserves_trailing_comment() {
+        let text = "      - uses: actions/checkout@v6  # pin\n";
+        let (new, _c) = rewrite_uses(text, false, resolve);
+        assert_eq!(new, "      - uses: actions/checkout@v7  # pin\n");
     }
 
     // Composite / subpath actions (`owner/repo/subdir@ref`) don't fit the

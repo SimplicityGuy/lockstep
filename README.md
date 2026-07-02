@@ -66,6 +66,9 @@ just deps       # dogfood: run lockstep on this repo
   these ecosystems as up to date, and `lockstep check` optimistically shows them
   as would-change, since lockstep can't preview what the tool would do without
   actually running it. Run `git diff` afterward to see exactly what changed.
+- **`--major` is asymmetric.** It's honored by npm and cargo (pull the latest
+  major); uv and requirements ignore it in v1 — cap relaxation isn't wired up
+  for those ecosystems yet.
 - **JVM ecosystems are out of scope.** Maven and Gradle are not supported in v1.
 - **Docker resolves public registries only.** Image tag/digest resolution covers
   Docker Hub and GHCR; private or self-hosted registries are not supported.

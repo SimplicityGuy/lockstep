@@ -121,8 +121,25 @@ impl Registry {
     }
 }
 
+/// Leading numeric components of a docker tag, before any non-numeric suffix.
+/// "3.13-slim" -> [3,13]; "22.04" -> [22,4]; "latest" -> [].
+fn numeric_components(tag: &str) -> Vec<u64> {
+    let numeric: String = tag
+        .chars()
+        .take_while(|c| c.is_ascii_digit() || *c == '.')
+        .collect();
+    numeric
+        .split('.')
+        .filter(|s| !s.is_empty())
+        .filter_map(|s| s.parse().ok())
+        .collect()
+}
+
 /// Two tags share a "shape" when their non-numeric suffix (e.g. `-slim`, `-alpine`)
-/// is identical. `3.13-slim` matches `3.14-slim` but not `3.14-alpine` or `3.14`.
+/// is identical AND the current tag's leading numeric components are a prefix of
+/// the candidate's — i.e. the candidate stays on the same numeric line.
+/// `3.13-slim` matches `3.13-slim` and `3.13.5-slim`, but not `3.14-slim` or
+/// `3.14-alpine`; `22.04` matches `22.04` and `22.04.3` but not `24.04`.
 fn shape_matches(candidate: &str, current: &str) -> bool {
     fn suffix(tag: &str) -> String {
         tag.chars()
@@ -132,7 +149,12 @@ fn shape_matches(candidate: &str, current: &str) -> bool {
     fn is_numeric_lead(tag: &str) -> bool {
         tag.chars().next().is_some_and(|c| c.is_ascii_digit())
     }
-    is_numeric_lead(candidate) && suffix(candidate) == suffix(current)
+    if !is_numeric_lead(candidate) || suffix(candidate) != suffix(current) {
+        return false;
+    }
+    let cur = numeric_components(current);
+    let cand = numeric_components(candidate);
+    cur.len() <= cand.len() && cand[..cur.len()] == cur[..]
 }
 
 #[cfg(test)]
@@ -185,5 +207,30 @@ mod tests {
         let mut s = mockito::Server::new();
         let _m = s.mock("GET", "/pypi/ghost/json").with_status(404).create();
         assert_eq!(reg(&s).latest_pypi("ghost"), None);
+    }
+
+    #[test]
+    fn latest_docker_tag_stays_on_numeric_line() {
+        let mut s = mockito::Server::new();
+        let _m = s
+            .mock(
+                "GET",
+                "/v2/repositories/library/python/tags?page_size=100&ordering=last_updated",
+            )
+            .with_body(
+                r#"{"results":[
+                    {"name":"3.13-slim"},
+                    {"name":"3.13.5-slim"},
+                    {"name":"3.14-slim"},
+                    {"name":"3.14.2-slim"},
+                    {"name":"3-slim"}
+                ]}"#,
+            )
+            .create();
+        // Must stay on the 3.13 line (3.13.5-slim), never cross into 3.14.x.
+        assert_eq!(
+            reg(&s).latest_docker_tag("python", "3.13-slim").as_deref(),
+            Some("3.13.5-slim")
+        );
     }
 }

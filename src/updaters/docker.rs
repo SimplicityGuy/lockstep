@@ -19,7 +19,7 @@ fn from_re() -> &'static Regex {
     RE.get_or_init(|| {
         // FROM <image>:<tag>[@sha256:...] [AS stage]
         Regex::new(
-            r"(?m)^(?P<prefix>FROM\s+)(?P<image>[A-Za-z0-9][A-Za-z0-9._/-]*):(?P<tag>[A-Za-z0-9._-]+)(?P<digest>@sha256:[0-9a-f]+)?(?P<suffix>\s+[Aa][Ss]\s+\S+)?[ \t]*$",
+            r"(?m)^(?P<prefix>FROM\s+(?:--\S+\s+)*)(?P<image>[A-Za-z0-9][A-Za-z0-9._/-]*):(?P<tag>[A-Za-z0-9._-]+)(?P<digest>@sha256:[0-9a-f]+)?(?P<suffix>\s+[Aa][Ss]\s+\S+)?[ \t]*$",
         )
         .unwrap()
     })
@@ -185,6 +185,17 @@ mod tests {
         let text = "FROM python:3.13-slim\n";
         let (new, _c) = rewrite_from(text, true, resolve);
         assert_eq!(new, "FROM python:3.14-slim@sha256:dead\n");
+    }
+
+    #[test]
+    fn preserves_platform_flag_while_rewriting_tag() {
+        fn resolve(_image: &str, _tag: &str) -> Option<(String, Option<String>)> {
+            Some(("3.14-slim".to_string(), None))
+        }
+        let text = "FROM --platform=$BUILDPLATFORM python:3.13-slim\n";
+        let (new, changes) = rewrite_from(text, false, resolve);
+        assert_eq!(new, "FROM --platform=$BUILDPLATFORM python:3.14-slim\n");
+        assert_eq!(changes.len(), 1);
     }
 
     #[test]
