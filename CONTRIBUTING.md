@@ -101,13 +101,13 @@ pre-commit run --all-files
 
 1. **Fork** the repository and create a topic branch from `main`
    (e.g. `fix/docker-digest-resolution`).
-2. **Make focused commits** with clear messages. Explain *why* in the body when
+1. **Make focused commits** with clear messages. Explain *why* in the body when
    the change isn't self-evident.
-3. **Keep PRs scoped.** One logical change per PR is much easier to review.
-4. **Fill out the PR description**: what changed, why, and how you verified it.
+1. **Keep PRs scoped.** One logical change per PR is much easier to review.
+1. **Fill out the PR description**: what changed, why, and how you verified it.
    Link any related issue (`Fixes #123`).
-5. **Ensure CI is green.** PRs must pass formatting, clippy, and the test suite.
-6. A maintainer will review your PR. Please be responsive to feedback — small,
+1. **Ensure CI is green.** PRs must pass formatting, clippy, and the test suite.
+1. A maintainer will review your PR. Please be responsive to feedback — small,
    iterative changes get merged faster.
 
 ## Releases
