@@ -19,8 +19,7 @@ pub enum Status {
 }
 
 impl Status {
-    #[allow(dead_code)] // not yet called outside tests; wired in Task 13's JSON path
-    fn as_str(self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Status::Applied => "applied",
             Status::WouldChange => "would-change",
