@@ -1,6 +1,7 @@
-# Superpowers planning artifacts (specs, implementation plans) — never commit.
+# Superpowers planning artifacts (specs, plans) and SDD scratch — never commit.
 # Completed usage/design docs live elsewhere (README, docs/) and ARE committed.
 docs/superpowers/
+.superpowers/
 
 # Rust
 /target
