@@ -22,6 +22,16 @@ Dockerfile updates where none does.
 A detected ecosystem whose toolchain isn't installed is **skipped with a warning**,
 not an error.
 
+## Install
+
+Prebuilt binaries for Linux (x86_64, aarch64), macOS (Intel, Apple Silicon), and
+Windows (x86_64) are attached to each [GitHub Release](https://github.com/SimplicityGuy/lockstep/releases),
+along with a `SHA256SUMS` file. Download the archive for your platform, verify the
+checksum, and put `lockstep` on your `PATH`. Or build from source with `cargo build --release`.
+
+Releases use CalVer (`YYYY.MM.MICRO`, e.g. `2026.7.0`) and are cut by pushing a
+`v<version>` tag; `just release-tag` computes and pushes the next tag for you.
+
 ## Usage
 
 ```console
