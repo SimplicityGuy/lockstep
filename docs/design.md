@@ -1,6 +1,6 @@
-# lockstep design
+# clockpin design
 
-A concise, committed record of how lockstep is built. (Working specs and plans
+A concise, committed record of how clockpin is built. (Working specs and plans
 live under `docs/superpowers/`, which is gitignored.)
 
 ## Shape

@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-/// Every ecosystem lockstep can update, in run order.
+/// Every ecosystem clockpin can update, in run order.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Ecosystem {
     Uv,

@@ -1,4 +1,4 @@
-# zizmor configuration for lockstep.
+# zizmor configuration for clockpin.
 # No project-specific exemptions: the single CI workflow uses no reusable-workflow
 # secret inheritance or GitHub App tokens, so zizmor's defaults apply cleanly.
 rules: {}

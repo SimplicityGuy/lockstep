@@ -1,6 +1,6 @@
 #!/usr/bin/env just --justfile
 
-# 🔒 lockstep — keep 'em in step
+# 🔒 clockpin — continuous lockfile pin updates
 # Run 'just --list' to see all commands.
 
 default:
@@ -56,10 +56,10 @@ test:
 test-verbose:
     cargo test -- --nocapture
 
-# ── Deps (dogfood lockstep on itself) ───────────────────────────────────────
+# ── Deps (dogfood clockpin on itself) ───────────────────────────────────────
 # `--freeze all` keeps every freezable pin immutable — GitHub Actions `uses:` and
 # pre-commit hook revs as SHAs (+ Docker digests if a Dockerfile is ever added).
-# lockstep's freeze is opt-in, so we opt in here to match the repo's frozen pins.
+# clockpin's freeze is opt-in, so we opt in here to match the repo's frozen pins.
 [group('deps')]
 deps:
     cargo run -- run --freeze all

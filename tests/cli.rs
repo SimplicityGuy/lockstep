@@ -4,13 +4,13 @@ use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use tempfile::tempdir;
 
-fn lockstep() -> Command {
-    Command::cargo_bin("lockstep").unwrap()
+fn clockpin() -> Command {
+    Command::cargo_bin("clockpin").unwrap()
 }
 
 #[test]
 fn help_lists_subcommands() {
-    lockstep().arg("--help").assert().success().stdout(
+    clockpin().arg("--help").assert().success().stdout(
         predicate::str::contains("run")
             .and(predicate::str::contains("check"))
             .and(predicate::str::contains("list")),
@@ -20,7 +20,7 @@ fn help_lists_subcommands() {
 #[test]
 fn list_reports_ecosystems_on_empty_repo() {
     let dir = tempdir().unwrap();
-    lockstep()
+    clockpin()
         .args(["list", "--path"])
         .arg(dir.path())
         .assert()
@@ -31,26 +31,26 @@ fn list_reports_ecosystems_on_empty_repo() {
 #[test]
 fn check_writes_nothing_on_empty_repo() {
     let dir = tempdir().unwrap();
-    lockstep()
+    clockpin()
         .args(["check", "--path"])
         .arg(dir.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("keeping 'em in step"));
+        .stdout(predicate::str::contains("continuous lockfile pin updates"));
 }
 
 #[test]
 fn completions_emit_bash() {
-    lockstep()
+    clockpin()
         .args(["completions", "bash"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("lockstep"));
+        .stdout(predicate::str::contains("clockpin"));
 }
 
 #[test]
 fn rejects_unknown_freeze_key() {
-    lockstep()
+    clockpin()
         .args(["run", "--freeze", "cargo"])
         .assert()
         .failure();
