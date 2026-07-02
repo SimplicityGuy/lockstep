@@ -1,12 +1,4 @@
 //! Version, name-normalization, and tag-granularity primitives.
-//!
-//! Only exercised by this module's own unit tests until later tasks wire
-//! `normalize`/`version_key`/`desired_tag`/`relax_cap` into `registry.rs` and
-//! the updaters (see plan Tasks 4, 6, 8). `warnings = "deny"` turns the
-//! interim "never used outside tests" state into a hard build failure for
-//! `cargo build`/`cargo clippy` (though not `cargo test`, since the test cfg
-//! counts as a use), so silence dead-code here until those call sites land.
-#![allow(dead_code)]
 
 use std::sync::OnceLock;
 
@@ -52,6 +44,8 @@ pub fn desired_tag(current_ref: &str, latest: &str) -> String {
 
 /// Raise a `<N…` cap inside a requirement remainder to `<{ceiling}.0.0`.
 /// Returns the rewritten remainder, or `None` when there is no `<` cap.
+// reserved for `--major` cap relaxation; not yet wired (see docs/design.md)
+#[allow(dead_code)]
 pub fn relax_cap(rest: &str, ceiling: u64) -> Option<String> {
     if !rest.contains('<') {
         return None;

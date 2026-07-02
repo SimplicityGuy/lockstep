@@ -45,19 +45,22 @@ impl Registry {
         serde_json::from_str(&buf).ok()
     }
 
-    #[allow(dead_code)] // not yet called outside tests; wired in a later task (pypi updater)
+    // reserved for held-back-major reporting; not yet wired (see docs/design.md)
+    #[allow(dead_code)]
     pub fn latest_pypi(&self, name: &str) -> Option<String> {
         let v = self.get_json(&format!("{}/pypi/{name}/json", self.pypi_base))?;
         v.get("info")?.get("version")?.as_str().map(String::from)
     }
 
-    #[allow(dead_code)] // not yet called outside tests; wired in a later task (npm updater)
+    // reserved for held-back-major reporting; not yet wired (see docs/design.md)
+    #[allow(dead_code)]
     pub fn latest_npm(&self, name: &str) -> Option<String> {
         let v = self.get_json(&format!("{}/{name}/latest", self.npm_base))?;
         v.get("version")?.as_str().map(String::from)
     }
 
-    #[allow(dead_code)] // not yet called outside tests; wired in a later task (cargo updater)
+    // reserved for held-back-major reporting; not yet wired (see docs/design.md)
+    #[allow(dead_code)]
     pub fn latest_crate(&self, name: &str) -> Option<String> {
         let v = self.get_json(&format!("{}/api/v1/crates/{name}", self.crates_base))?;
         v.get("crate")?
@@ -69,7 +72,6 @@ impl Registry {
     /// Newest tag for `image` whose shape matches `current_tag`'s granularity
     /// (e.g. `3.13-slim` stays on the `3.13-slim` line). Docker Hub library
     /// images are namespaced `library/<name>`.
-    #[allow(dead_code)] // not yet called outside tests; wired in a later task (docker updater)
     pub fn latest_docker_tag(&self, image: &str, current_tag: &str) -> Option<String> {
         let repo = if image.contains('/') {
             image.to_string()
@@ -97,7 +99,6 @@ impl Registry {
     }
 
     /// Resolve the manifest digest (`sha256:…`) for `image:tag` on Docker Hub.
-    #[allow(dead_code)] // not yet called outside tests; wired in a later task (docker updater)
     pub fn docker_digest(&self, image: &str, tag: &str) -> Option<String> {
         let repo = if image.contains('/') {
             image.to_string()

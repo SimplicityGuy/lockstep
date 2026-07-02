@@ -7,7 +7,6 @@ use serde::Serialize;
 
 use crate::context::Ecosystem;
 
-#[allow(dead_code)] // variants not yet constructed outside tests; wired in a later task
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Status {
     Applied,
@@ -41,7 +40,6 @@ impl Status {
     }
 }
 
-#[allow(dead_code)] // variants not yet constructed outside tests; wired in a later task
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ChangeKind {
@@ -66,14 +64,12 @@ pub struct HeldBackMajor {
     pub latest: String,
 }
 
-#[allow(dead_code)] // not yet constructed outside tests; wired in a later task
 pub struct Reporter {
     pub quiet: bool,
     pub verbose: bool,
     pub color: bool,
 }
 
-#[allow(dead_code)] // methods not yet called outside tests; wired in a later task
 impl Reporter {
     pub fn header(&self) {
         if !self.quiet {
@@ -81,7 +77,7 @@ impl Reporter {
         }
     }
 
-    pub fn detected(&self, present: &[Ecosystem], absent: &[Ecosystem]) {
+    pub fn detected(&self, present: &[Ecosystem], absent: &[(Ecosystem, String)]) {
         if self.quiet {
             return;
         }
@@ -92,10 +88,15 @@ impl Reporter {
             .join(" · ");
         let a = absent
             .iter()
-            .map(|e| e.key())
+            .map(|(e, _)| e.key())
             .collect::<Vec<_>>()
             .join(", ");
         println!("  🔎 detected: {p}   (absent: {a})\n");
+        if self.verbose {
+            for (e, reason) in absent {
+                println!("      {} {}: {reason}", e.emoji(), e.key());
+            }
+        }
     }
 
     pub fn line(&self, eco: Ecosystem, out: &crate::updaters::UpdateOutcome, frozen: bool) {
@@ -167,7 +168,6 @@ impl Reporter {
 
 // ---- JSON run log -------------------------------------------------------
 
-#[allow(dead_code)] // not yet constructed outside tests; wired in a later task
 #[derive(Serialize)]
 pub struct RunLog {
     pub tool: String,
@@ -179,7 +179,6 @@ pub struct RunLog {
     pub summary: SummaryLog,
 }
 
-#[allow(dead_code)] // not yet constructed outside tests; wired in a later task
 #[derive(Serialize)]
 pub struct OptionsLog {
     pub dry_run: bool,
@@ -189,7 +188,6 @@ pub struct OptionsLog {
     pub skip: Vec<String>,
 }
 
-#[allow(dead_code)] // not yet constructed outside tests; wired in a later task
 #[derive(Serialize)]
 pub struct EcoLog {
     pub key: String,
@@ -201,7 +199,6 @@ pub struct EcoLog {
     pub errors: Vec<String>,
 }
 
-#[allow(dead_code)] // not yet constructed outside tests; wired in a later task
 #[derive(Serialize)]
 pub struct SummaryLog {
     pub updated: usize,
@@ -209,7 +206,6 @@ pub struct SummaryLog {
     pub errors: usize,
 }
 
-#[allow(dead_code)] // not yet called outside tests; wired in a later task
 pub fn write_json_log(path: &Path, log: &RunLog) -> anyhow::Result<()> {
     let text = serde_json::to_string_pretty(log)?;
     std::fs::write(path, text)?;

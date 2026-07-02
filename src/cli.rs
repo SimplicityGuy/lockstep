@@ -111,9 +111,7 @@ impl RunArgs {
                     set.insert(Ecosystem::Docker);
                 }
                 FreezeKey::All => {
-                    set.insert(Ecosystem::Actions);
-                    set.insert(Ecosystem::PreCommit);
-                    set.insert(Ecosystem::Docker);
+                    set.extend(Ecosystem::ALL.into_iter().filter(|e| e.is_freezable()));
                 }
             }
         }

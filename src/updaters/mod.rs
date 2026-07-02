@@ -14,14 +14,12 @@ pub mod python_requirements;
 pub mod python_uv;
 
 /// Result of scanning a repo for one ecosystem's manifests.
-#[allow(dead_code)] // variants not yet constructed outside tests; wired in a later task
 pub enum Detection {
     Present { targets: Vec<PathBuf> },
     Absent { reason: String },
 }
 
 /// What an updater did (or would do).
-#[allow(dead_code)] // fields not yet read outside tests; wired in a later task
 pub struct UpdateOutcome {
     pub status: Status,
     pub changes: Vec<Change>,
@@ -40,7 +38,6 @@ impl UpdateOutcome {
             held_back: vec![],
         }
     }
-    #[allow(dead_code)] // not yet called outside tests/stubs; wired in a later task
     pub fn applied(changes: Vec<Change>) -> Self {
         let status = if changes.is_empty() {
             Status::UpToDate
@@ -57,13 +54,11 @@ impl UpdateOutcome {
         o.warnings.push(reason.into());
         o
     }
-    #[allow(dead_code)] // not yet called outside tests/stubs; wired in a later task
     pub fn warned(msg: impl Into<String>) -> Self {
         let mut o = UpdateOutcome::new(Status::Warned);
         o.warnings.push(msg.into());
         o
     }
-    #[allow(dead_code)] // not yet called outside tests/stubs; wired in a later task
     pub fn errored(msg: impl Into<String>) -> Self {
         let mut o = UpdateOutcome::new(Status::Errored);
         o.errors.push(msg.into());
@@ -72,7 +67,6 @@ impl UpdateOutcome {
 }
 
 /// One ecosystem updater.
-#[allow(dead_code)] // trait not yet consumed outside stubs; wired in a later task
 pub trait Updater {
     fn ecosystem(&self) -> Ecosystem;
     fn detect(&self, root: &Path) -> Detection;
@@ -80,7 +74,6 @@ pub trait Updater {
 }
 
 /// All updaters, in run order.
-#[allow(dead_code)] // not yet called outside tests; wired in a later task
 pub fn all() -> Vec<Box<dyn Updater>> {
     vec![
         Box::new(python_uv::PythonUv),

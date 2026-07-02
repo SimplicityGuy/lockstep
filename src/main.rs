@@ -69,10 +69,12 @@ fn orchestrate(args: RunArgs, force_dry_run: bool) -> anyhow::Result<i32> {
         .filter(|(_, _, d)| matches!(d, updaters::Detection::Present { .. }))
         .map(|(_, e, _)| *e)
         .collect();
-    let absent: Vec<Ecosystem> = jobs
+    let absent: Vec<(Ecosystem, String)> = jobs
         .iter()
-        .filter(|(_, _, d)| matches!(d, updaters::Detection::Absent { .. }))
-        .map(|(_, e, _)| *e)
+        .filter_map(|(_, e, d)| match d {
+            updaters::Detection::Absent { reason } => Some((*e, reason.clone())),
+            _ => None,
+        })
         .collect();
     reporter.detected(&present, &absent);
 
@@ -114,7 +116,12 @@ fn orchestrate(args: RunArgs, force_dry_run: bool) -> anyhow::Result<i32> {
             repo_root: ctx.repo_root.to_string_lossy().into_owned(),
             options: OptionsLog {
                 dry_run: ctx.dry_run,
-                freeze: ctx.freeze.iter().map(|e| e.key().to_string()).collect(),
+                freeze: {
+                    let mut freeze: Vec<String> =
+                        ctx.freeze.iter().map(|e| e.key().to_string()).collect();
+                    freeze.sort();
+                    freeze
+                },
                 major: ctx.major,
                 only: ctx.only.iter().map(|e| e.key().to_string()).collect(),
                 skip: ctx.skip.iter().map(|e| e.key().to_string()).collect(),

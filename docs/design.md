@@ -22,3 +22,6 @@ live under `docs/superpowers/`, which is gitignored.)
   registry access goes through `Registry` (mock server in tests). Pure helpers
   (version keys, tag granularity, `uses:`/`FROM` rewriters, bound bumping) are
   unit-tested directly.
+- **Deferred:** held-back-major reporting and `--major` cap relaxation are not
+  yet wired — `registry::Registry::latest_pypi`/`latest_npm`/`latest_crate` and
+  `version::relax_cap` exist and are tested, but no updater calls them yet.
