@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET: ${{ matrix.target }}
+      IS_WINDOWS: ${{ matrix.os == 'windows-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - target: x86_64-apple-darwin
+            os: macos-15-intel
+          - target: aarch64-apple-darwin
+            os: macos-15
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # frozen: v7
+        with:
+          persist-credentials: false
+
+      - name: 🏷️ Set version from tag
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]{4}\.[0-9]{1,2}\.[0-9]+$'; then
+            echo "::error::tag '${GITHUB_REF_NAME}' is not vYYYY.MM.MICRO"
+            exit 1
+          fi
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
+          # Inject the CalVer into the crate so `lockstep --version` reports it.
+          # Only the [package] version sits at column 0, so a line-anchored edit is safe.
+          perl -i -pe 's/^version = ".*"/version = "'"$version"'"/' Cargo.toml
+          grep '^version' Cargo.toml
+
+      - name: 🦀 Add Rust target
+        shell: bash
+        run: rustup target add "$TARGET"
+
+      - name: 🔨 Build
+        shell: bash
+        run: cargo build --release --target "$TARGET"
+
+      - name: 📦 Package
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="lockstep-${VERSION}-${TARGET}"
+          mkdir "$stage"
+          if [ "$IS_WINDOWS" = "true" ]; then
+            cp "target/${TARGET}/release/lockstep.exe" "$stage/"
+          else
+            cp "target/${TARGET}/release/lockstep" "$stage/"
+          fi
+          cp README.md LICENSE "$stage/"
+          if [ "$IS_WINDOWS" = "true" ]; then
+            7z a "${stage}.zip" "$stage" >/dev/null
+            archive="${stage}.zip"
+          else
+            tar czf "${stage}.tar.gz" "$stage"
+            archive="${stage}.tar.gz"
+          fi
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$archive" > "${archive}.sha256"
+          else
+            shasum -a 256 "$archive" > "${archive}.sha256"
+          fi
+          echo "archive=${archive}" >> "$GITHUB_OUTPUT"
+
+      - name: ⬆️ Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # frozen: v7
+        with:
+          name: lockstep-${{ matrix.target }}
+          path: |
+            ${{ steps.package.outputs.archive }}
+            ${{ steps.package.outputs.archive }}.sha256
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: ⬇️ Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # frozen: v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: 🧾 Combine checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          cd dist
+          cat ./*.sha256 > SHA256SUMS
+          ls -1
+
+      - name: 🚀 Create GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          cd dist
+          gh release create "v${VERSION}" \
+            --repo "$REPO" \
+            --title "lockstep ${VERSION}" \
+            --generate-notes \
+            lockstep-*.tar.gz lockstep-*.zip SHA256SUMS
