@@ -56,18 +56,20 @@ test:
 test-verbose:
     cargo test -- --nocapture
 
-# ── Deps (dogfood lockstep on itself) ──────────────────────────────────────
+# ── Deps (dogfood lockstep on itself) ───────────────────────────────────────
+# `--freeze actions` keeps the CI workflow's action pins as immutable SHAs
+# (CI is SHA-frozen; lockstep's own freeze is opt-in, so we opt in here).
 [group('deps')]
 deps:
-    cargo run -- run
+    cargo run -- run --freeze actions
 
 [group('deps')]
 deps-check:
-    cargo run -- check
+    cargo run -- check --freeze actions
 
 [group('deps')]
 deps-major:
-    cargo run -- run --major
+    cargo run -- run --major --freeze actions
 
 # ── Clean ──────────────────────────────────────────────────────────────────
 [group('clean')]
