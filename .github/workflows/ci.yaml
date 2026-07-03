@@ -30,6 +30,23 @@ jobs:
       - name: 🧪 Test
         run: just test
 
+  action:
+    name: Action scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # frozen: v7
+        with:
+          persist-credentials: false
+
+      - name: 🐚 Shellcheck
+        run: shellcheck scripts/*.sh tests/action/*.sh
+
+      - name: 🧪 Action script tests
+        run: |
+          bash tests/action/run_argv_test.sh
+          bash tests/action/install_version_test.sh
+
   pre-commit:
     name: pre-commit
     runs-on: ubuntu-latest

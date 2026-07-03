@@ -74,17 +74,17 @@ deps-major:
 
 # ── Release (CalVer YYYY.MM.MICRO) ─────────────────────────────────────────
 # Compute the next release tag: today's year.month, MICRO = next unused count
-# for that year+month among existing v* tags (0 if none). Private helper.
+# for that year+month among existing CalVer tags (0 if none). Private helper.
 _next-tag:
     #!/usr/bin/env bash
     set -euo pipefail
     ym="$(date +%Y).$((10#$(date +%m)))"
     micro=0
-    for t in $(git tag --list "v${ym}.*"); do
+    for t in $(git tag --list "${ym}.*"); do
         m="${t##*.}"
         if [[ "$m" =~ ^[0-9]+$ ]] && (( m >= micro )); then micro=$((m + 1)); fi
     done
-    echo "v${ym}.${micro}"
+    echo "${ym}.${micro}"
 
 # Print the next release tag without creating it
 [group('release')]

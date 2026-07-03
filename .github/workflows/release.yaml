@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    tags: ["v*.*.*"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
 
 permissions:
   contents: read
@@ -37,9 +37,9 @@ jobs:
       - name: 🏷️ Set version from tag
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${GITHUB_REF_NAME}"
           if ! printf '%s' "$version" | grep -Eq '^[0-9]{4}\.[0-9]{1,2}\.[0-9]+$'; then
-            echo "::error::tag '${GITHUB_REF_NAME}' is not vYYYY.MM.MICRO"
+            echo "::error::tag '${GITHUB_REF_NAME}' is not CalVer (YYYY.MM.MICRO)"
             exit 1
           fi
           echo "VERSION=${version}" >> "$GITHUB_ENV"
@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          echo "VERSION=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           cd dist
           cat ./*.sha256 > SHA256SUMS
           ls -1
@@ -122,7 +122,7 @@ jobs:
         run: |
           set -euo pipefail
           cd dist
-          gh release create "v${VERSION}" \
+          gh release create "${VERSION}" \
             --repo "$REPO" \
             --title "clockpin ${VERSION}" \
             --generate-notes \
