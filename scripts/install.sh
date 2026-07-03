@@ -4,7 +4,7 @@
 # Driven entirely by environment variables so it can be exercised outside the
 # GitHub Actions runtime:
 #   INPUT_VERSION   clockpin version to install. Empty/"matching" (default) tracks
-#                   the action's own CalVer tag; "latest" or "vYYYY.MM.MICRO" pin.
+#                   the action's own CalVer tag; "latest" or "YYYY.MM.MICRO" pin.
 #   INPUT_TOKEN     GitHub token, used for API calls and downloads
 #   GITHUB_ACTION_REF  the ref the action was resolved at (provided by Actions)
 #   RUNNER_OS       Linux | macOS | Windows   (provided by Actions)
@@ -68,30 +68,27 @@ if [ -z "$VERSION" ] || [ "$VERSION" = "matching" ]; then
   # github.action_ref is the tag/branch/SHA the caller pinned the action to.
   ref="${GITHUB_ACTION_REF:-}"
   if printf '%s' "$ref" | grep -Eq "$CALVER_RE"; then
-    tag="v${ref#v}"
-    echo "Action pinned to ${ref}; installing the matching clockpin ${tag}."
+    num="${ref#v}"
+    echo "Action pinned to ${ref}; installing the matching clockpin ${num}."
   else
     echo "Action ref '${ref:-<none>}' is not a CalVer tag; falling back to the latest release."
-    tag="$(resolve_latest)"
+    num="$(resolve_latest)"
   fi
 elif [ "$VERSION" = "latest" ]; then
-  tag="$(resolve_latest)"
+  num="$(resolve_latest)"
 else
-  # Accept either "vX.Y.Z" or "X.Y.Z".
-  case "$VERSION" in
-    v*) tag="$VERSION" ;;
-    *)  tag="v${VERSION}" ;;
-  esac
+  num="$VERSION"
 fi
 
-num="${tag#v}"
+# clockpin tags are bare CalVer (no leading "v"); tolerate a "v" a caller passes.
+num="${num#v}"
 archive="clockpin-${num}-${triple}.${ext}"
-base_url="https://github.com/${REPO}/releases/download/${tag}"
+base_url="https://github.com/${REPO}/releases/download/${num}"
 
 workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 
-echo "Downloading ${archive} (${tag})…"
+echo "Downloading ${archive} (${num})…"
 curl -sSfL -o "${workdir}/${archive}" "${base_url}/${archive}" \
   || die "failed to download ${base_url}/${archive}"
 curl -sSfL -o "${workdir}/SHA256SUMS" "${base_url}/SHA256SUMS" \

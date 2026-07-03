@@ -15,8 +15,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 triple="x86_64-unknown-linux-gnu"
-ver="2026.7.0"
-tag="v${ver}"
+ver="2026.7.0" # bare CalVer — clockpin tags carry no leading "v"
 
 # --- Build a fake release archive + SHA256SUMS ---
 rel="${tmp}/release"
@@ -49,7 +48,7 @@ for a in "\$@"; do
 done
 echo "\$url" >> "${tmp}/curl.log"
 case "\$url" in
-  */releases/latest) printf '{"tag_name": "%s"}\n' "${STUB_LATEST_TAG:-${tag}}" ;;
+  */releases/latest) printf '{"tag_name": "%s"}\n' "${STUB_LATEST_TAG:-${ver}}" ;;
   *SHA256SUMS)       cp "${rel}/SHA256SUMS" "\$out" ;;
   *.tar.gz)          cp "${rel}/${archive}" "\$out" ;;
   *) echo "unexpected url: \$url" >&2; exit 22 ;;
@@ -65,7 +64,7 @@ run_case() {
   env PATH="${bindir}:${PATH}" \
       CLOCKPIN_REPO="acme/clockpin" RUNNER_OS=Linux RUNNER_ARCH=X64 \
       CLOCKPIN_BIN_DIR="${tmp}/install" GITHUB_OUTPUT="$out" GITHUB_PATH="" \
-      STUB_LATEST_TAG="${tag}" \
+      STUB_LATEST_TAG="${ver}" \
       "$@" bash "$install_sh" >/dev/null 2>&1
 
   local got_ver; got_ver="$(sed -n 's/^clockpin-version=//p' "$out")"
@@ -81,15 +80,15 @@ run_case() {
   fi
 }
 
-# Empty version + CalVer action ref → install the matching tag, no API call.
-run_case "matching action ref" no   env INPUT_VERSION= GITHUB_ACTION_REF="${tag}"
-# Empty version + bare numeric CalVer ref (no leading v) → still matches.
-run_case "matching bare calver"  no   env INPUT_VERSION= GITHUB_ACTION_REF="${ver}"
+# Empty version + bare CalVer action ref → install the matching tag, no API call.
+run_case "matching action ref"   no   env INPUT_VERSION= GITHUB_ACTION_REF="${ver}"
+# A "v"-prefixed ref is tolerated and normalized to the bare tag.
+run_case "tolerates v prefix"    no   env INPUT_VERSION= GITHUB_ACTION_REF="v${ver}"
 # Empty version + non-CalVer ref (branch) → fall back to latest via API.
 run_case "branch ref falls back" yes  env INPUT_VERSION= GITHUB_ACTION_REF="main"
 # Explicit pin → no API call.
-run_case "explicit pin"          no   env INPUT_VERSION="${tag}" GITHUB_ACTION_REF="main"
+run_case "explicit pin"          no   env INPUT_VERSION="${ver}" GITHUB_ACTION_REF="main"
 # Explicit latest → API call.
-run_case "explicit latest"       yes  env INPUT_VERSION=latest GITHUB_ACTION_REF="${tag}"
+run_case "explicit latest"       yes  env INPUT_VERSION=latest GITHUB_ACTION_REF="${ver}"
 
 exit $fail

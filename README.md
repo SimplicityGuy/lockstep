@@ -29,8 +29,9 @@ Windows (x86_64) are attached to each [GitHub Release](https://github.com/Simpli
 along with a `SHA256SUMS` file. Download the archive for your platform, verify the
 checksum, and put `clockpin` on your `PATH`. Or build from source with `cargo build --release`.
 
-Releases use CalVer (`YYYY.MM.MICRO`, e.g. `2026.7.0`) and are cut by pushing a
-`v<version>` tag; `just release-tag` computes and pushes the next tag for you.
+Releases use [CalVer](https://calver.org) (`YYYY.MM.MICRO`, e.g. `2026.7.0`) and
+are cut by pushing a bare `<version>` tag — no `v` prefix; `just release-tag`
+computes and pushes the next tag for you.
 
 ## Usage
 
@@ -82,17 +83,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: SimplicityGuy/clockpin@v2026.7.0
+      - uses: SimplicityGuy/clockpin@2026.7.0
         with:
           freeze: actions docker # optional: pin these to SHA/digest
           skip: npm # optional: exclude ecosystems
 ```
 
 The action ships in this repo, so it shares clockpin's CalVer tags: pin it to a
-release tag like `@v2026.7.0` (or a commit SHA). By default the action installs
-the clockpin binary **matching the tag you pinned**, so the action and the CLI
-stay in lockstep — no separate versioning to track. Override with the `version`
-input (`latest`, or a specific `vYYYY.MM.MICRO`) if you need to.
+release tag like `@2026.7.0` (bare CalVer, no `v` — or a commit SHA). By default
+the action installs the clockpin binary **matching the tag you pinned**, so the
+action and the CLI stay in lockstep — no separate versioning to track. Override
+with the `version` input (`latest`, or a specific `YYYY.MM.MICRO`) if you need to.
 
 The action needs `contents: write` and `pull-requests: write`. To let it update
 dependencies **inside `.github/workflows/`**, the default `GITHUB_TOKEN` isn't
