@@ -59,6 +59,77 @@ Freezing is **opt-in, per tool**. By default clockpin writes plain tags/versions
 - `--freeze docker` → `@sha256:…` digest on the bumped tag
 - `--freeze all` → all three
 
+## GitHub Action
+
+Run clockpin in CI and let it open a pull request with the updates. The action
+downloads the prebuilt clockpin binary for the runner, runs the subcommand you
+choose, and — for `run` — commits any changes to a branch and opens (or updates)
+a PR.
+
+```yaml
+name: Update dependencies
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  clockpin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: SimplicityGuy/clockpin@v1
+        with:
+          freeze: actions docker # optional: pin these to SHA/digest
+          skip: npm # optional: exclude ecosystems
+```
+
+The action needs `contents: write` and `pull-requests: write`. To let it update
+dependencies **inside `.github/workflows/`**, the default `GITHUB_TOKEN` isn't
+enough — pass a PAT (or GitHub App token) via the `token` input.
+
+### Inputs
+
+Every CLI option is exposed. List inputs accept space- or comma-separated
+values; booleans are `true`/`false`.
+
+| Input      | CLI flag                    | Default  |
+| ---------- | --------------------------- | -------- |
+| `command`  | `run` / `check` / `list`    | `run`    |
+| `version`  | clockpin release to install | `latest` |
+| `path`     | `--path`                    |          |
+| `dry-run`  | `--dry-run`                 | `false`  |
+| `freeze`   | `--freeze`                  |          |
+| `only`     | `--only`                    |          |
+| `skip`     | `--skip`                    |          |
+| `major`    | `--major`                   | `false`  |
+| `log-json` | `--log-json`                |          |
+| `verbose`  | `--verbose`                 | `false`  |
+| `quiet`    | `--quiet`                   | `false`  |
+| `no-color` | `--no-color`                | `false`  |
+
+Pull-request inputs (used only when `command: run`): `create-pr` (default
+`true`), `token`, `branch` (`clockpin/updates`), `base`, `commit-message`,
+`pr-title`, `pr-body`, `pr-labels` (`dependencies`), `pr-draft`,
+`commit-user-name`, `commit-user-email`.
+
+### Outputs
+
+| Output                | Meaning                                      |
+| --------------------- | -------------------------------------------- |
+| `changed`             | `true` if clockpin modified any tracked file |
+| `clockpin-version`    | resolved installed version                   |
+| `pull-request-number` | PR number, when created/updated              |
+| `pull-request-url`    | PR URL, when created/updated                 |
+
+Set `create-pr: false` (or use `command: check`) to run without opening a PR —
+handy for validating dependencies on every push. A full example lives in
+[`docs/example-workflow.yml`](docs/example-workflow.yml).
+
 ## Development
 
 ```console

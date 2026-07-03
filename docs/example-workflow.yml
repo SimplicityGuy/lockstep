@@ -1,0 +1,45 @@
+# Example caller workflow for the clockpin GitHub Action.
+# Copy this into a consumer repo at .github/workflows/update-dependencies.yml.
+---
+name: Update dependencies
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays at 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Preview only — don't write or open a PR"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  clockpin:
+    name: clockpin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update dependencies
+        id: clockpin
+        uses: SimplicityGuy/clockpin@v1
+        with:
+          # Pin freezable tools to immutable refs.
+          freeze: actions docker
+          # Also emit a JSON run log, embedded in the PR body.
+          log-json: clockpin-run.json
+          # Honour the manual dry-run toggle above.
+          dry-run: ${{ github.event.inputs.dry-run || 'false' }}
+          # PR presentation.
+          branch: clockpin/updates
+          commit-message: "chore(deps): weekly dependency update"
+          pr-labels: dependencies, automated
+
+      - name: Summary
+        if: ${{ steps.clockpin.outputs.changed == 'true' }}
+        run: echo "Opened ${{ steps.clockpin.outputs.pull-request-url }}"

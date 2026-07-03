@@ -1,0 +1,143 @@
+name: clockpin
+description: Keep every pinned dependency in a repo in step with upstream, and open a PR with the updates.
+author: Robert Wlodarczyk
+branding:
+  icon: refresh-cw
+  color: purple
+
+inputs:
+  # --- clockpin CLI options ---
+  command:
+    description: "Subcommand to run: run, check, or list."
+    default: run
+  version:
+    description: 'clockpin release to install ("latest" or a tag like v2026.7.0).'
+    default: latest
+  path:
+    description: "Repository root to operate on (--path). Defaults to the checkout root."
+    default: ""
+  dry-run:
+    description: "Preview changes without writing (--dry-run)."
+    default: "false"
+  freeze:
+    description: "Tools to freeze to SHA/digest pins (--freeze): actions, pre-commit, docker, or all."
+    default: ""
+  only:
+    description: "Restrict to these ecosystems (--only), space/comma separated."
+    default: ""
+  skip:
+    description: "Exclude these ecosystems (--skip), space/comma separated."
+    default: ""
+  major:
+    description: "Pull held-back major versions (--major)."
+    default: "false"
+  log-json:
+    description: "Write a JSON run log to this file (--log-json). Embedded in the PR body when set."
+    default: ""
+  verbose:
+    description: "Verbose output (--verbose)."
+    default: "false"
+  quiet:
+    description: "Quiet output (--quiet)."
+    default: "false"
+  no-color:
+    description: "Disable colored output (--no-color)."
+    default: "false"
+
+  # --- Pull request options (used only when command is `run`) ---
+  create-pr:
+    description: "Open a pull request with the changes. Ignored for check/list."
+    default: "true"
+  token:
+    description: "GitHub token used to push the branch and open the PR."
+    default: ${{ github.token }}
+  branch:
+    description: "Head branch for the pull request."
+    default: clockpin/updates
+  base:
+    description: "Base branch for the pull request. Defaults to the branch the workflow ran on."
+    default: ""
+  commit-message:
+    description: "Commit message for the update commit."
+    default: "chore(deps): update pinned dependencies via clockpin"
+  pr-title:
+    description: "Pull request title. Defaults to the commit message."
+    default: ""
+  pr-body:
+    description: "Pull request body. Defaults to an auto-generated summary."
+    default: ""
+  pr-labels:
+    description: "Labels to add to the PR, comma/space separated. Missing labels are skipped with a warning."
+    default: dependencies
+  pr-draft:
+    description: "Open the pull request as a draft."
+    default: "false"
+  commit-user-name:
+    description: "Git author/committer name for the update commit."
+    default: "github-actions[bot]"
+  commit-user-email:
+    description: "Git author/committer email for the update commit."
+    default: "41898282+github-actions[bot]@users.noreply.github.com"
+
+outputs:
+  changed:
+    description: "true if clockpin modified any tracked file."
+    value: ${{ steps.run.outputs.changed }}
+  clockpin-version:
+    description: "The resolved clockpin version that was installed."
+    value: ${{ steps.install.outputs.clockpin-version }}
+  pull-request-number:
+    description: "Number of the pull request that was created or updated."
+    value: ${{ steps.pr.outputs.pull-request-number }}
+  pull-request-url:
+    description: "URL of the pull request that was created or updated."
+    value: ${{ steps.pr.outputs.pull-request-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install clockpin
+      id: install
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_TOKEN: ${{ inputs.token }}
+      run: bash "${{ github.action_path }}/scripts/install.sh"
+
+    - name: Run clockpin
+      id: run
+      shell: bash
+      env:
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
+        INPUT_FREEZE: ${{ inputs.freeze }}
+        INPUT_ONLY: ${{ inputs.only }}
+        INPUT_SKIP: ${{ inputs.skip }}
+        INPUT_MAJOR: ${{ inputs.major }}
+        INPUT_LOG_JSON: ${{ inputs.log-json }}
+        INPUT_VERBOSE: ${{ inputs.verbose }}
+        INPUT_QUIET: ${{ inputs.quiet }}
+        INPUT_NO_COLOR: ${{ inputs.no-color }}
+      run: bash "${{ github.action_path }}/scripts/run.sh"
+
+    - name: Open pull request
+      id: pr
+      if: ${{ inputs.command == 'run' && inputs.create-pr == 'true' && steps.run.outputs.changed == 'true' }}
+      shell: bash
+      env:
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_CREATE_PR: ${{ inputs.create-pr }}
+        CHANGED: ${{ steps.run.outputs.changed }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_BASE: ${{ inputs.base }}
+        INPUT_COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        INPUT_PR_TITLE: ${{ inputs.pr-title }}
+        INPUT_PR_BODY: ${{ inputs.pr-body }}
+        INPUT_PR_LABELS: ${{ inputs.pr-labels }}
+        INPUT_PR_DRAFT: ${{ inputs.pr-draft }}
+        INPUT_COMMIT_USER_NAME: ${{ inputs.commit-user-name }}
+        INPUT_COMMIT_USER_EMAIL: ${{ inputs.commit-user-email }}
+        INPUT_LOG_JSON: ${{ inputs.log-json }}
+      run: bash "${{ github.action_path }}/scripts/pr.sh"
