@@ -27,7 +27,9 @@ jobs:
 
       - name: Update dependencies
         id: clockpin
-        uses: SimplicityGuy/clockpin@v1
+        # Pin to a CalVer release tag (or a commit SHA). By default the action
+        # installs the clockpin binary matching this tag, keeping them in sync.
+        uses: SimplicityGuy/clockpin@v2026.7.0
         with:
           # Pin freezable tools to immutable refs.
           freeze: actions docker

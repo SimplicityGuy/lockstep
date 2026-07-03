@@ -82,11 +82,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: SimplicityGuy/clockpin@v1
+      - uses: SimplicityGuy/clockpin@v2026.7.0
         with:
           freeze: actions docker # optional: pin these to SHA/digest
           skip: npm # optional: exclude ecosystems
 ```
+
+The action ships in this repo, so it shares clockpin's CalVer tags: pin it to a
+release tag like `@v2026.7.0` (or a commit SHA). By default the action installs
+the clockpin binary **matching the tag you pinned**, so the action and the CLI
+stay in lockstep — no separate versioning to track. Override with the `version`
+input (`latest`, or a specific `vYYYY.MM.MICRO`) if you need to.
 
 The action needs `contents: write` and `pull-requests: write`. To let it update
 dependencies **inside `.github/workflows/`**, the default `GITHUB_TOKEN` isn't
@@ -97,20 +103,20 @@ enough — pass a PAT (or GitHub App token) via the `token` input.
 Every CLI option is exposed. List inputs accept space- or comma-separated
 values; booleans are `true`/`false`.
 
-| Input      | CLI flag                    | Default  |
-| ---------- | --------------------------- | -------- |
-| `command`  | `run` / `check` / `list`    | `run`    |
-| `version`  | clockpin release to install | `latest` |
-| `path`     | `--path`                    |          |
-| `dry-run`  | `--dry-run`                 | `false`  |
-| `freeze`   | `--freeze`                  |          |
-| `only`     | `--only`                    |          |
-| `skip`     | `--skip`                    |          |
-| `major`    | `--major`                   | `false`  |
-| `log-json` | `--log-json`                |          |
-| `verbose`  | `--verbose`                 | `false`  |
-| `quiet`    | `--quiet`                   | `false`  |
-| `no-color` | `--no-color`                | `false`  |
+| Input      | CLI flag                    | Default     |
+| ---------- | --------------------------- | ----------- |
+| `command`  | `run` / `check` / `list`    | `run`       |
+| `version`  | clockpin release to install | matches tag |
+| `path`     | `--path`                    |             |
+| `dry-run`  | `--dry-run`                 | `false`     |
+| `freeze`   | `--freeze`                  |             |
+| `only`     | `--only`                    |             |
+| `skip`     | `--skip`                    |             |
+| `major`    | `--major`                   | `false`     |
+| `log-json` | `--log-json`                |             |
+| `verbose`  | `--verbose`                 | `false`     |
+| `quiet`    | `--quiet`                   | `false`     |
+| `no-color` | `--no-color`                | `false`     |
 
 Pull-request inputs (used only when `command: run`): `create-pr` (default
 `true`), `token`, `branch` (`clockpin/updates`), `base`, `commit-message`,

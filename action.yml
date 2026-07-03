@@ -11,8 +11,11 @@ inputs:
     description: "Subcommand to run: run, check, or list."
     default: run
   version:
-    description: 'clockpin release to install ("latest" or a tag like v2026.7.0).'
-    default: latest
+    description: >-
+      clockpin release to install. Empty (default) installs the release matching
+      the action's own CalVer tag, keeping the binary and action in sync; use
+      "latest" or a tag like v2026.7.0 to override.
+    default: ""
   path:
     description: "Repository root to operate on (--path). Defaults to the checkout root."
     default: ""
@@ -102,6 +105,7 @@ runs:
       env:
         INPUT_VERSION: ${{ inputs.version }}
         INPUT_TOKEN: ${{ inputs.token }}
+        GITHUB_ACTION_REF: ${{ github.action_ref }}
       run: bash "${{ github.action_path }}/scripts/install.sh"
 
     - name: Run clockpin

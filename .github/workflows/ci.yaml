@@ -42,8 +42,10 @@ jobs:
       - name: 🐚 Shellcheck
         run: shellcheck scripts/*.sh tests/action/*.sh
 
-      - name: 🧪 Argv mapping test
-        run: bash tests/action/run_argv_test.sh
+      - name: 🧪 Action script tests
+        run: |
+          bash tests/action/run_argv_test.sh
+          bash tests/action/install_version_test.sh
 
   pre-commit:
     name: pre-commit

@@ -3,8 +3,10 @@
 #
 # Driven entirely by environment variables so it can be exercised outside the
 # GitHub Actions runtime:
-#   INPUT_VERSION   clockpin version to install ("latest" or "vYYYY.MM.MICRO")
+#   INPUT_VERSION   clockpin version to install. Empty/"matching" (default) tracks
+#                   the action's own CalVer tag; "latest" or "vYYYY.MM.MICRO" pin.
 #   INPUT_TOKEN     GitHub token, used for API calls and downloads
+#   GITHUB_ACTION_REF  the ref the action was resolved at (provided by Actions)
 #   RUNNER_OS       Linux | macOS | Windows   (provided by Actions)
 #   RUNNER_ARCH     X64 | ARM64               (provided by Actions)
 #   CLOCKPIN_REPO   override the source repo (default SimplicityGuy/clockpin)
@@ -15,8 +17,11 @@
 set -euo pipefail
 
 REPO="${CLOCKPIN_REPO:-SimplicityGuy/clockpin}"
-VERSION="${INPUT_VERSION:-latest}"
+VERSION="${INPUT_VERSION:-}"
 TOKEN="${INPUT_TOKEN:-}"
+
+# clockpin releases use CalVer: YYYY.MM.MICRO, tagged vYYYY.MM.MICRO.
+CALVER_RE='^v?[0-9]{4}\.[0-9]{1,2}\.[0-9]+$'
 
 die() {
   echo "::error::$*" >&2
@@ -38,18 +43,39 @@ esac
 
 # --- Resolve `latest` to a concrete tag via the releases API ---
 api_get() {
+  # Two explicit forms rather than an array — expanding an empty array under
+  # `set -u` errors on bash 3.2 (the default on macOS runners).
   local url="$1"
-  local auth=()
-  [ -n "$TOKEN" ] && auth=(-H "Authorization: Bearer ${TOKEN}")
-  curl -sSfL "${auth[@]}" -H "Accept: application/vnd.github+json" "$url"
+  if [ -n "$TOKEN" ]; then
+    curl -sSfL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.github+json" "$url"
+  else
+    curl -sSfL -H "Accept: application/vnd.github+json" "$url"
+  fi
 }
 
-if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
-  echo "Resolving latest clockpin release for ${REPO}…"
-  tag="$(api_get "https://api.github.com/repos/${REPO}/releases/latest" \
+resolve_latest() {
+  echo "Resolving latest clockpin release for ${REPO}…" >&2
+  local t
+  t="$(api_get "https://api.github.com/repos/${REPO}/releases/latest" \
     | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
     | head -n1)"
-  [ -n "$tag" ] || die "could not resolve the latest release for ${REPO} (no releases published yet?)"
+  [ -n "$t" ] || die "could not resolve the latest release for ${REPO} (no releases published yet?)"
+  printf '%s' "$t"
+}
+
+if [ -z "$VERSION" ] || [ "$VERSION" = "matching" ]; then
+  # Default: keep the binary in lockstep with the action's own CalVer tag.
+  # github.action_ref is the tag/branch/SHA the caller pinned the action to.
+  ref="${GITHUB_ACTION_REF:-}"
+  if printf '%s' "$ref" | grep -Eq "$CALVER_RE"; then
+    tag="v${ref#v}"
+    echo "Action pinned to ${ref}; installing the matching clockpin ${tag}."
+  else
+    echo "Action ref '${ref:-<none>}' is not a CalVer tag; falling back to the latest release."
+    tag="$(resolve_latest)"
+  fi
+elif [ "$VERSION" = "latest" ]; then
+  tag="$(resolve_latest)"
 else
   # Accept either "vX.Y.Z" or "X.Y.Z".
   case "$VERSION" in
